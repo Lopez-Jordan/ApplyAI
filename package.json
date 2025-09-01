@@ -1,0 +1,21 @@
+{
+  "name": "applyai",
+  "version": "1.0.0",
+  "description": "",
+  "main": "init.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lopez-Jordan/ApplyAI.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/Lopez-Jordan/ApplyAI/issues"
+  },
+  "homepage": "https://github.com/Lopez-Jordan/ApplyAI#readme"
+}

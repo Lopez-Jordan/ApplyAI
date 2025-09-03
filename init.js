@@ -1,5 +1,18 @@
 import fs from 'fs';
 import { ApifyClient } from 'apify-client';
+import OpenAI from 'openai';
+import { config } from 'dotenv';
+
+// Load environment variables
+config();
+
+// Initialize OpenAI
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+});
+
+// Load resume
+const resumeContent = fs.readFileSync('Resume.txt', 'utf8');
 
 
 
@@ -38,23 +51,94 @@ const validJobs = jobData.filter(job => {
 
 console.log(`Found ${validJobs.length} valid jobs out of ${jobData.length} total jobs`);
 
-let jobArr = [];
+// Simple job analysis function
+async function shouldApplyToJob(job) {
+    try {
+        const response = await openai.chat.completions.create({
+            model: "gpt-4o",
+            messages: [
+                {
+                    role: "system",
+                    content: "You are a career advisor. Based on the candidate's resume and a job posting, determine if they should apply. Return your response as JSON with 'apply' (true/false) and 'reason' (explanation). Use 60%+ confidence threshold."
+                },
+                {
+                    role: "user",
+                    content: `RESUME: ${resumeContent}
+                    
+JOB POSTING:
+Job Title: ${job.title}
+Company: ${job.companyName}
+Salary: ${job.salaryInfo} ${job.salary}
+Job Description: ${job.descriptionText}
+Seniority Level: ${job.seniorityLevel}
+Job Function: ${job.jobFunction}
 
-// Process only the first 5 valid jobs
-for (let i = 0; i < Math.min(5, validJobs.length); i++){
+Should this candidate apply? Return JSON with format: {"apply": true/false, "reason": "explanation"}`
+                }
+            ],
+            response_format: { type: "json_object" },
+            temperature: 0.1,
+            max_tokens: 200
+        });
+        
+        const result = JSON.parse(response.choices[0].message.content);
+        return result;
+    } catch (error) {
+        console.error('Error analyzing job:', error);
+        return { apply: false, reason: "Analysis failed due to technical error" };
+    }
+}
+
+let jobArr = [];
+const recommendedJobs = [];
+
+// Process and analyze jobs 5-10 (indices 4-9)
+for (let i = 4; i < Math.min(10, validJobs.length); i++){
     const job = validJobs[i];
     
+    console.log(`\n🔍 Analyzing job ${i + 1}/10: ${job.title} at ${job.companyName}`);
+    
+    // Get AI recommendation
+    const recommendation = await shouldApplyToJob(job);
+    
     const jobString = `
-        Job Title: ${job.title},
-        Company: ${job.companyName},
-        Salary: ${job.salaryInfo} ${job.salary},
-        Job Description: ${job.descriptionText},
-        Seniority Level: ${job.seniorityLevel},
-        Job Function: ${job.jobFunction},
-        Apply URL: ${job.applyUrl},
+        Job Title: ${job.title}
+        Company: ${job.companyName}
+        Salary: ${job.salaryInfo} ${job.salary}
+        Seniority Level: ${job.seniorityLevel}
+        Job Function: ${job.jobFunction}
+        Apply URL: ${job.applyUrl}
         Posted by: ${job.jobPosterName}
+        
+        🤖 AI Recommendation: ${recommendation.apply ? '✅ APPLY' : '❌ SKIP'}
+        💭 Reason: ${recommendation.reason}
     `;
     
-    jobArr.push(jobString);
-    console.log(jobString);
+    // Only log the essential info
+    console.log(`${recommendation.apply ? '✅' : '❌'} ${recommendation.apply ? 'APPLY' : 'SKIP'} - ${recommendation.reason.substring(0, 100)}...`);
+    
+    // Store recommended jobs separately
+    if (recommendation.apply) {
+        recommendedJobs.push({
+            title: job.title,
+            company: job.companyName,
+            salary: job.salary || job.salaryInfo,
+            applyUrl: job.applyUrl,
+            reason: recommendation.reason
+        });
+    }
+}
+
+// Summary
+console.log(`\n📈 SUMMARY: ${recommendedJobs.length} jobs recommended out of ${Math.min(6, validJobs.length - 4)} analyzed`);
+
+// Display recommended jobs
+if (recommendedJobs.length > 0) {
+    console.log('\n🎯 RECOMMENDED JOBS:');
+    recommendedJobs.forEach((job, index) => {
+        console.log(`\n${index + 1}. ${job.title} - ${job.company}`);
+        console.log(`   Salary: ${job.salary || 'Not specified'}`);
+        console.log(`   Apply: ${job.applyUrl || 'Contact recruiter'}`);
+        console.log(`   Why: ${job.reason.substring(0, 200)}...`);
+    });
 }

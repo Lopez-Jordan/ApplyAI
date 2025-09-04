@@ -19,6 +19,8 @@
   },
   "homepage": "https://github.com/Lopez-Jordan/ApplyAI#readme",
   "dependencies": {
-    "apify-client": "^2.16.0"
+    "apify-client": "^2.16.0",
+    "dotenv": "^17.2.2",
+    "openai": "^5.18.1"
   }
 }

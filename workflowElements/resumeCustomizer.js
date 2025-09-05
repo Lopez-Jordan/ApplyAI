@@ -5,7 +5,7 @@ import path from 'path';
 export async function customizeResume(jobDetails, originalResume, openaiInstance) {
     try {
         const response = await openaiInstance.chat.completions.create({
-            model: "gpt-4o-mini",
+            model: "gpt-4o",
             temperature: 0.3,
             max_tokens: 2000,
             top_p: 0.9,
@@ -16,7 +16,7 @@ export async function customizeResume(jobDetails, originalResume, openaiInstance
                 {
                     role: "system",
                     content: `
-                        You are an expert resume writer. You specialize in tailoring resumes to specific job postings while maintaining authenticity. 
+                        You are an expert resume writer. You specialize in tailoring resumes to specific job postings while not adding any false information.
                         Your goal is to optimize keyword matching, highlight relevant experiences, and present the candidate in the best possible light for the target role.
 
                         Always respond with valid JSON matching the specified schema.
@@ -26,11 +26,8 @@ export async function customizeResume(jobDetails, originalResume, openaiInstance
                     role: "user",
                     content: `
                         CUSTOMIZATION INSTRUCTIONS:
-                        - Maintain truthfulness - do not add fake experiences or skills that do no exist in the ORIGINAL RESUME, but you can enhance descriptions of existing experiences relevant to the job posting
-                        - Optimize keywords to match the job description (ATS-friendly)
-                        - Modify the SUMMARY section (if necessary) to better align with the job description - do not include experiences or skills not present in the original resume
-                        - Modify the SKILLS section (if necessary) to better align with the job. Soft skills (ie. leadership, communication, etc.) can be adjusted an appropriate amount to match the job description while keeping technical skills truthful
-                        - Format for professional presentation (and keep the resume 1 page)
+                        1: Modify the SUMMARY section by combining elements from the job description and the original resume to create a tailored human friendly summary that highlights relevant skills and experiences. DO NOT ADD FALSE EXPERIENCES OR SKILLS.
+                        2: Modify the SKILLS "Client/Business Facing" and "Non-Technical" sections to better align with the soft skills from the job description
 
                         JOB THE CANDIDATE IS APPLYING FOR:
                         Title: ${jobDetails.title}
@@ -41,15 +38,56 @@ export async function customizeResume(jobDetails, originalResume, openaiInstance
                         Job Description: ${jobDetails.descriptionText}
 
 
-                        ORIGINAL RESUME:
+                        JOB CANDIDATE RESUME:
                         ${originalResume}
 
                         Provide the customized resume using this exact JSON schema:
                         {
                         "customizedResume": "Full customized resume content in markdown format",
-                        "matchScore": 85,
-                        "improvementSuggestions": ["List of 2-3 specific suggestions for further resume improvements"]
                         }
+
+                        The resume MUST BE in this markdown format:
+                        # [Full Name]  
+                        [email] | [phone number] | [LinkedIn URL]  
+
+                        ## SUMMARY  
+                        [3–5 sentence summary tailored to role, highlighting domain expertise, technical skills, and business value.]  
+
+                        ## EDUCATION  
+                        **[Degree, Major]** – [University]  
+                        **[Certificates]** – [Institution]  
+
+                        ## SKILLS  
+                        **Technical:** [list technical skills separated by commas]  
+                        **Non-Technical:** [list Non-Technical (soft) skills from job description]  
+                        **Client/Business Facing:** [list business/soft skills]  
+
+                        ## WORK EXPERIENCE  
+                        ### [Job Title] -- [Company] ([Start Year] - [End Year or Present])  
+                        - [Accomplishment/result statement with metrics]  
+                        - [Accomplishment/result statement with metrics]  
+                        - [Accomplishment/result statement with metrics]  
+                        - [Accomplishment/result statement with metrics]  
+                        - [Accomplishment/result statement with metrics]  
+
+                        ### [Job Title] -- [Company] ([Start Year] - [End Year])  
+                        - [Accomplishment/result statement with metrics]  
+                        - [Accomplishment/result statement with metrics]  
+                        - [Accomplishment/result statement with metrics]  
+
+                        ### [Job Title] -- [Company] ([Start Year] - [End Year])  
+                        - [Accomplishment/result statement with metrics]  
+                        - [Accomplishment/result statement with metrics]  
+                        - [Accomplishment/result statement with metrics]  
+
+                        ## PROJECTS  
+                        ### [Project Name] | [Link if applicable]  
+                        - **Technologies:** [list]  
+                        - **Functionality:** [1–2 sentence description of what the project does]  
+
+                        ### [Project Name]  
+                        - **Technologies:** [list]  
+                        - **Functionality:** [1–2 sentence description of what the project does]  
                         `
                 }
             ]

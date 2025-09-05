@@ -14,8 +14,8 @@ AWS Solutions Architect – Associate, Certificate – Amazon Web Services
 
 SKILLS
 
-Technical: AWS, JavaScript/Node.js, HTML/CSS, SQL & NoSQL DBs, React.js, LangChain.js, Splunk, Python, Docker, Retrievel Augmented Generation
-Product Delivery: Agile, Scrum, Jira, Testing, QA, Solutions Architecture, End to End Project Management
+Technical: AWS, JavaScript/Node.js, HTML/CSS, SQL, NoSQL, Vector databases, React.js, LangChain.js, Splunk, Python, Docker, Generative AI, RAG, Terraform
+Non-Technical: Agile, Scrum, Jira, Testing, QA, Solutions Architecture, End to End Project Management
 Client/Business Facing: Product Demos, Solution Scoping & Architecture, Translating Tech to Business Value
 
 WORK EXPERIENCE
